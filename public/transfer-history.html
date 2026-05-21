@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Transfer History</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f5f7fa;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      background: #fff;
+      padding: 30px 40px;
+      border-radius: 16px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+      max-width: 700px;
+      width: 100%;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    h2 {
+      font-weight: 700;
+      color: #222;
+      margin-bottom: 24px;
+      font-size: 28px;
+    }
+
+    /* Wrap table in a div for horizontal scroll */
+    .table-wrapper {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      margin-bottom: 40px;
+    }
+
+    table#transferHistory {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0 12px;
+      min-width: 600px; /* Ensure table is wider than small screens for scroll */
+    }
+
+    thead th {
+      text-align: left;
+      padding: 12px 20px;
+      font-weight: 600;
+      color: #555;
+      border-bottom: 2px solid #e0e0e0;
+      background: #f9fafb;
+      border-radius: 8px 8px 0 0;
+      white-space: nowrap;
+    }
+
+    tbody tr {
+      background-color: #fafafa;
+      border-radius: 12px;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    tbody tr:hover {
+      background-color: #e1f0ff;
+      box-shadow: 0 6px 20px rgba(0, 123, 255, 0.2);
+    }
+
+    tbody td {
+      padding: 14px 20px;
+      color: #333;
+      font-size: 16px;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+
+    .back-link {
+      display: inline-block;
+      color: #007bff;
+      font-weight: 600;
+      text-decoration: none;
+      transition: color 0.2s ease;
+      margin-bottom: 0;
+    }
+
+    .back-link:hover {
+      color: #0056b3;
+      text-decoration: underline;
+    }
+
+    @media (max-width: 720px) {
+      .container {
+        padding: 20px 25px;
+      }
+
+      h2 {
+        font-size: 22px;
+      }
+
+      .table-wrapper {
+        margin-bottom: 20px;
+      }
+
+      table#transferHistory {
+        min-width: 100%; /* allow table to shrink */
+      }
+
+      tbody td {
+        padding: 10px 12px;
+        font-size: 14px;
+      }
+
+      thead th {
+        padding: 10px 12px;
+        font-size: 14px;
+      }
+    }
+
+    /* Optional: Stack rows as cards on very small screens */
+    @media (max-width: 480px) {
+      table#transferHistory, thead, tbody, th, td, tr {
+        display: block;
+      }
+
+      thead tr {
+        display: none;
+      }
+
+      tbody tr {
+        margin-bottom: 15px;
+        padding: 15px;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+        border-radius: 12px;
+        background-color: #fafafa;
+      }
+
+      tbody td {
+        padding: 8px 12px;
+        text-align: right;
+        position: relative;
+        font-size: 14px;
+        border: none;
+        white-space: normal;
+      }
+
+      tbody td::before {
+        content: attr(data-label);
+        position: absolute;
+        left: 12px;
+        font-weight: 600;
+        color: #555;
+        text-transform: capitalize;
+        text-align: left;
+        white-space: nowrap;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Transfer History</h2>
+
+    <div class="table-wrapper">
+      <table id="transferHistory" aria-label="Transfer History Table">
+        <a href="/home.html" class="back-link">Back to Home</a>
+        <thead>
+          <tr>
+            <th>Sender</th>
+            <th>Receiver</th>
+            <th>Amount</th>
+            <th>Date &amp; Time</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <ul id="transferList">
+      <li>Loading transfer history...</li>
+    </ul>
+
+
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      fetch("/get-transfer-history")
+        .then(response => response.json())
+        .then(data => {
+          if (data.error) {
+            console.error("Error:", data.error);
+            return;
+          }
+
+          const tableBody = document.querySelector("#transferHistory tbody");
+          tableBody.innerHTML = "";
+
+          data.forEach(entry => {
+            const row = document.createElement("tr");
+
+            // Add data-label attributes for mobile stacked display
+            row.innerHTML = `
+              <td data-label="Sender">${entry.sender}</td>
+              <td data-label="Receiver">${entry.receiver}</td>
+              <td data-label="Amount">${entry.amount}</td>
+              <td data-label="Date & Time">${new Date(entry.timestamp).toLocaleString()}</td>
+            `;
+
+            tableBody.appendChild(row);
+          });
+        })
+        .catch(error => console.error("Error fetching transfer history:", error));
+    });
+  </script>
+</body>
+</html>

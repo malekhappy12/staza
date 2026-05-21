@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Welcome to Staza</title>
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+  <style>
+.button-background {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 740px;
+  height: 210px;
+  background-color: #dddbdb;
+  border-radius: 20px;
+  z-index: 0;
+  box-shadow: 0 0 20px rgba(0,0,0,0.281);
+}
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: #f4f4f4;
+  overflow-x: hidden;
+}
+
+.section {
+  min-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 20px;
+}
+
+.logo {
+  width: 250px;
+  height: 250px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 20px;
+}
+
+h1 {
+  font-size: 3rem;
+  color: #333;
+  margin: 0;
+}
+
+h2 {
+  font-size: 1.8rem;
+  color: #666;
+  margin-top: 10px;
+  margin-bottom: 40px;
+}
+
+.button-wrapper {
+  position: relative;
+  display: flex;
+  gap: 35px;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 60px;
+}
+
+.dashboard-button {
+  background: linear-gradient(135deg, #d11c1c, #4e10c2);
+  color: white;
+  padding: 40px;
+  width: 200px;
+  height: 150px;
+  font-size: 20px;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.329);
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.dashboard-button:hover {
+  transform: scale(1.06);
+  box-shadow: 0 0 15px 5px #00aaffa6;
+  background-color: #ffffff;
+  color: #fff;
+}
+
+.logout-wrapper {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.logout-button {
+  background-color: #d11c1c;
+  color: white;
+  padding: 20px 30px;
+  font-size: 19px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  margin-top: 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.logout-button:hover {
+  background-color: #a50f0f;
+  transform: scale(1.05);
+}
+
+@media (max-width: 600px) {
+  .section {
+    padding: 10px;
+  }
+
+  .logo {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 20px;
+}
+
+  h1 {
+    font-size: 2.2rem;
+  }
+
+  h2 {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+  }
+
+  .button-wrapper {
+    flex-wrap: nowrap;
+    flex-direction: row;
+    gap: 6px;
+    padding: 12px 4px;
+    width: 100vw;
+    max-width: 100vw;
+    min-width: 0;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .dashboard-button {
+    width: 26vw;
+    min-width: 110px;
+    max-width: 110px;
+    height: 95px;
+    padding: 6px;
+    font-size: 16px;
+    border-radius: 12px;
+  }
+
+  .button-background {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: calc(100vw - 14px);
+    max-width: calc(100vw - 14px);
+    min-width: 0;
+    height: calc(132px - 8px);
+    border-radius: 14px;
+    background-color: #cfcfcf;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.267);
+    z-index: 0;
+  }
+}
+  </style>
+</head>
+<body>
+
+  <section class="section" data-aos="fade-up">
+    <img src="logo.jpg" alt="Logo" class="logo">
+    <h1>Welcome to Staza</h1>
+    <h2>Where do you want to go?</h2>
+
+    <div class="button-wrapper">
+      <div class="button-background"></div>
+      <button class="dashboard-button" onclick="window.location.href = '/transfer.html'">Transfer</button>
+      <button class="dashboard-button" onclick="window.location.href = '/transfer-history.html'">Transfer History</button>
+      <button id="admin-button" class="dashboard-button">Admin Panel</button>
+    </div>
+    
+    <!-- logout is now outside -->
+    <div class="logout-wrapper">
+      <button onclick="logout()" class="logout-button">Logout</button>
+    </div>
+  </section>
+
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  <script>
+    AOS.init({ duration: 1000 });
+
+fetch('/get-user-data')
+  .then(res => res.json())
+  .then(data => {
+    if (!data.username) {
+      window.location.href = '/login.html';
+    }
+  })
+  .catch(() => {
+    window.location.href = '/login.html';
+  });
+
+  function logout() {
+    fetch('/logout')
+      .then(() => window.location.href = '/login.html')
+      .catch(err => console.error('Logout failed', err));
+  }
+
+  function setupAdminButton() {
+  const btn = document.getElementById('admin-button');
+  // First, optimistically disable while we check
+  btn.disabled = true;
+  btn.style.opacity = 0.6;
+
+  fetch('/check-admin')
+    .then(res => res.json())
+    .then(data => {
+      btn.disabled = false;
+      btn.style.opacity = 1;
+
+      if (data.admin) {
+        // Admin: go to admin.html
+        btn.addEventListener('click', () => {
+          window.location.href = '/admin.html';
+        });
+      } else {
+        // Not admin: show message
+        btn.addEventListener('click', () => {
+          alert('You are not an admin');
+        });
+      }
+    })
+    .catch(err => {
+      console.error('Error checking admin status:', err);
+      btn.disabled = false;
+      btn.style.opacity = 1;
+      btn.addEventListener('click', () => {
+        alert('Unable to verify admin status');
+      });
+    });
+}
+
+// Call on load
+document.addEventListener('DOMContentLoaded', setupAdminButton);
+
+</script>
+<script src="/subscribe.js"></script>
+</body>
+</html>

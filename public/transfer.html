@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transfer Money</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background: url('background.jpg') no-repeat center center/cover;
+    }
+    .container {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      max-width: 400px;
+      width: 100%;
+      position: relative;
+    }
+    .corner-logo {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+    }
+    input {
+      display: block;
+      width: calc(100% - 20px);
+      margin: 10px 0;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background-color: #28a745;
+      border: none;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    button:hover {
+      background-color: #218838;
+    }
+    .message {
+      margin-top: 10px;
+      font-size: 14px;
+    }
+    .success {
+      color: green;
+    }
+    .error {
+      color: red;
+    }
+    .user-info {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    a {
+      display: block;
+      text-align: center;
+      margin-top: 10px;
+      color: blue;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <img src="logo.jpg" class="corner-logo" alt="Logo">
+  <div class="container">
+    <h2>Transfer Money</h2>
+    <p>Logged in as: <span id="username">Loading...</span></p>
+    <p>Balance: <span id="balance">Loading...</span></p>
+    
+    <input list="usernames" id="recipient" placeholder="Recipient Username">
+    <input type="number" id="amount" placeholder="Amount">
+    <datalist id="usernames"></datalist>
+    <button onclick="transferMoney()">Send Money</button>
+    
+    <p class="message" id="message"></p>
+    <a href="/home.html">Back to Home</a>
+  </div>
+
+  <script>
+    function updateUserData() {
+      fetch('/get-user-data')
+        .then(response => response.json())
+        .then(data => {
+          if (data.username) {
+            document.getElementById('username').textContent = data.username;
+            document.getElementById('balance').textContent = parseFloat(data.balance).toFixed(2) + "₴";
+            
+            // After getting user data, also update transfer history
+            updateTransferHistory(data.username);
+          } else {
+            window.location.href = '/login.html';
+          }
+        })
+        .catch(() => {
+          window.location.href = '/login.html';
+        });
+    }
+
+    function transferMoney() {
+      const recipient = document.getElementById("recipient").value.trim();
+      const amount = parseFloat(document.getElementById("amount").value);
+      const message = document.getElementById("message");
+
+      if (!recipient || isNaN(amount) || amount <= 0) {
+        message.textContent = "Please enter a valid recipient and amount.";
+        message.className = "message error";
+        return;
+      }
+
+      fetch('/transfer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ recipient, amount })
+      })
+      .then(response => response.json())
+      .then(data => {
+        message.textContent = data.message;
+        message.className = data.success ? "message success" : "message error";
+        if (data.success) {
+          setTimeout(updateUserData, 1000);
+        }
+      })
+      .catch(() => {
+        message.textContent = "An error occurred.";
+        message.className = "message error";
+      });
+    }
+
+    function updateTransferHistory(username) {
+      fetch(`/get-transfer-history?username=${username}`)
+        .then(res => res.json())
+        .then(data => {
+          const historyContainer = document.getElementById('transfer-history');
+          if (!historyContainer) return;
+          historyContainer.innerHTML = "";
+          if (!data.length) {
+            historyContainer.innerHTML = "<p>No transfers yet.</p>";
+            return;
+          }
+          data.forEach(entry => {
+            const p = document.createElement('p');
+            p.textContent = `${entry.sender} transferred ${entry.amount} to ${entry.receiver} on ${entry.timestamp}`;
+            historyContainer.appendChild(p);
+          });
+        })
+        .catch(console.error);
+    }
+
+    function loadUsernames() {
+      fetch('/get-usernames')
+        .then(res => res.json())
+        .then(data => {
+          const dl = document.getElementById('usernames');
+          dl.innerHTML = "";
+          data.usernames.forEach(u => {
+            const option = document.createElement('option');
+            option.value = u;
+            dl.appendChild(option);
+          });
+        })
+        .catch(console.error);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      updateUserData();
+      loadUsernames();
+    });
+  </script>
+</body>
+</html>

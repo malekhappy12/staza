@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-image: url('./login_background.png'); /* Corrected the path */
+            background-size: cover;
+            background-position: center;
+            margin: 0;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.9); 
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+        .corner-logo {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            opacity: 0.9;
+        }
+        input {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            background: #007BFF;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .register-link {
+            margin-top: 15px;
+            display: block;
+            text-decoration: none;
+            color: #007BFF;
+        }
+    </style>
+</head>
+<body>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <img src="logo.jpg" class="corner-logo">
+
+    <div class="container">
+        <h2>Login</h2>
+        <input type="text" id="username" placeholder="Enter username" required>
+        <input type="password" id="password" placeholder="Enter password" required>
+        <button id="login-btn">Login</button>
+        <p id="message" style="color: red; margin-top: 10px;"></p>
+        <a href="/register.html" class="register-link">Don't have an account? Register here</a>
+              
+    </div>
+
+    <script>
+        
+        async function loginUser() {
+          const username = document.getElementById('username').value.trim();
+          const password = document.getElementById('password').value.trim();
+          const msgEl = document.getElementById('message');
+      
+          if (!username || !password) {
+            msgEl.textContent = 'Please enter both username and password';
+            return;
+          }
+      
+          try {
+            const response = await fetch('/login', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ username, password })
+            });
+            const data = await response.json();
+            console.log('status', response.status, 'data', data);
+            if (response.ok) {
+              window.location.href = '/home.html';
+            } else {
+              msgEl.textContent = data.message || 'Login failed';
+            }
+          } catch (err) {
+            msgEl.textContent = 'Error connecting to server';
+            console.error(err);
+
+          }
+        }
+      
+        // 2) Wire it up on DOMContentLoaded
+        // e<a href="/register.html" class="register-link">Don't have an account? Register here</a>e
+        document.addEventListener('DOMContentLoaded', () => {
+          document.getElementById('login-btn')
+                  .addEventListener('click', loginUser);
+        });
+      </script>
+</body>
+</html>
+

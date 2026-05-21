@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Reset Password</title>
+  <style>
+    body { font-family: Arial; max-width: 400px; margin: 30px auto; }
+    input, button { display: block; width: 100%; padding: 10px; margin: 10px 0; }
+  </style>
+</head>
+<body>
+  <h2>Password Reset</h2>
+
+  <div id="step1">
+    <input type="email" id="email" placeholder="Enter your email" />
+    <button onclick="requestReset()">Send Code</button>
+  </div>
+
+  <div id="step2" style="display:none;">
+    <input type="text" id="code" placeholder="Enter the code sent to your email" />
+    <button onclick="verifyCode()">Verify Code</button>
+  </div>
+
+  <div id="step3" style="display:none;">
+    <input type="password" id="newPassword" placeholder="Enter new password" />
+    <button onclick="resetPassword()">Reset Password</button>
+  </div>
+
+  <p id="message"></p>
+
+  <script>
+    let globalEmail = '';
+
+    function requestReset() {
+      const email = document.getElementById('email').value;
+      fetch('http://localhost:5000/request-reset', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ email })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          globalEmail = email;
+          document.getElementById('step1').style.display = 'none';
+          document.getElementById('step2').style.display = 'block';
+          document.getElementById('message').textContent = data.message;
+        } else {
+          document.getElementById('message').textContent = data.error;
+        }
+      });
+    }
+
+    function verifyCode() {
+      const code = document.getElementById('code').value;
+      fetch('http://localhost:5000/verify-code', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ email: globalEmail, code })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          document.getElementById('step2').style.display = 'none';
+          document.getElementById('step3').style.display = 'block';
+          document.getElementById('message').textContent = data.message;
+        } else {
+          document.getElementById('message').textContent = data.error;
+        }
+      });
+    }
+
+    function resetPassword() {
+      const code = document.getElementById('code').value;
+      const newPassword = document.getElementById('newPassword').value;
+      fetch('http://localhost:5000/reset-password', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ email: globalEmail, code, newPassword })
+      })
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('message').textContent = data.success ? "Password reset successfully!" : data.error;
+      });
+    }
+  </script>
+</body>
+</html>
